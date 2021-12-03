@@ -1,0 +1,15 @@
+2021/12/02 15:33:21 Circle area calculated. 153.93804002589985
+2021/12/02 15:33:29 Square area calculated. 81
+2021/12/02 15:33:46 Triangle area calculated. 20
+2021/12/02 15:36:32 Circle area calculated. 254.46900494077323
+2021/12/02 15:39:34 Circle area calculated. 254.46900494077323
+2021/12/02 15:40:09 Circle area calculated. 254.46900494077323
+2021/12/02 15:40:20 Square area calculated. 64
+2021/12/02 15:53:08 Circle area calculated. 254.46900494077323
+2021/12/02 16:11:15 Circle area calculated. 0
+2021/12/02 16:11:52 Parallelogram area calculated. 0
+2021/12/02 16:12:00 Parallelogram area calculated. 0
+2021/12/02 16:12:03 Parallelogram area calculated. 2
+2021/12/02 16:16:38 Circle area calculated. 0
+2021/12/02 16:52:51 Circle area calculated. 0
+2021/12/02 16:53:27 Circle area calculated. 0
