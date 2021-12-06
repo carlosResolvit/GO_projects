@@ -6,38 +6,44 @@ import (
 	"time"
 )
 
+const side int = 9   // side length of the board
+const mines int = 10 // number of mines on the board
+
 type slot struct {
 	value      string
 	isSelected bool
 }
 
-var side int = 9   // side length of the board
-var mines int = 10 // number of mines on the board
-
-func createRandomeTable() [9][9]slot {
-	var auxTable [9][9]slot
-	for i := 0; i < 9; i++ {
-		for j := 0; i < 9; i++ {
+func createRandomeTable() [side][side]slot {
+	// Populate table with "-"
+	var auxTable [side][side]slot
+	for i := 0; i < side; i++ {
+		for j := 0; j < side; j++ {
 			auxTable[i][j].isSelected = false
 			auxTable[i][j].value = "-"
 		}
 	}
-	for i := 0; i < 10; i++ {
+	// Charge random mines "x" in table
+	for i := 0; i < mines; i++ {
 		x1 := rand.NewSource(time.Now().UnixNano())
 		y1 := rand.New(x1)
-		rand1 := y1.Intn(9)
-		rand2 := y1.Intn(9)
-		if auxTable[rand1][rand2].value == "-" {
+		rand1 := y1.Intn(side)
+		rand2 := y1.Intn(side)
+		if auxTable[rand1][rand2].value != "-" {
+			i--
+		} else {
 			auxTable[rand1][rand2].value = "x"
-			i++
 		}
 	}
+
+	// Add numeric values
+
 	return auxTable
 }
 
-func printTable(aTable [9][9]slot) {
-	for i := 0; i < 9; i++ {
-		for j := 0; i < 9; i++ {
+func printTable(aTable [side][side]slot) {
+	for i := 0; i < side; i++ {
+		for j := 0; j < side; j++ {
 			fmt.Print(aTable[i][j].value + " ")
 		}
 		fmt.Println(" ")
