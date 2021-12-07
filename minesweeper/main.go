@@ -10,6 +10,12 @@ import (
 const side int = 9   // side length of the board
 const mines int = 10 // number of mines on the board
 
+type game struct {
+	aTable   [side][side]slot
+	gameOver bool
+	aWinner  bool
+}
+
 type slot struct {
 	value       string
 	isDisplayed bool
@@ -103,13 +109,17 @@ func createRandomeTable() [side][side]slot {
 	return auxTable
 }
 
-func flipSlot(i int, j int, table [side][side]slot) {
-	//if is una bomba?
-	//GAME OVER
-	//else is a number > 0
-	// else is 0
-	//display blank neighbours
-
+func flipSlot(i int, j int, aGame game) {
+	if !isMine(i, j, aGame.aTable) && (aGame.aTable[i][j].value == "0") {
+		println("A")
+		aGame.aTable[i][j].isDisplayed = true
+	} else if !isMine(i, j, aGame.aTable) && (aGame.aTable[i][j].value != "0") {
+		println("B")
+		aGame.aTable[i][j].isDisplayed = true
+		//display blank neighbours aGame.aTable[i][j]
+	} else {
+		aGame.gameOver = true
+	}
 }
 
 /*func printTable(aTable [side][side]slot) {
@@ -141,22 +151,22 @@ func printGameTable(aTable [side][side]slot) {
 }
 
 func main() {
-	gameOver := false
-	table := createRandomeTable()
+	var auxGame game
+	auxGame.aTable = createRandomeTable()
+	auxGame.gameOver = false
+	auxGame.aWinner = false
 	var row int = -1
 	var col int = -1
-	for !gameOver {
+	for !auxGame.gameOver && !auxGame.aWinner {
 		fmt.Println("Current Table:")
-		printGameTable(table)
+		printGameTable(auxGame.aTable)
 		fmt.Println("Choose a row and a column:")
 		fmt.Scan(&row, &col)
 		if isValid(row, col) {
-			flipSlot(row, col, table)
+			flipSlot(row, col, auxGame)
 		} else {
-			fmt.Println("ERROR")
+			fmt.Println("The value is not valid")
 		}
 	}
-	//imprimir instrucciones - Ingrese fila y columna:
-	//escanear lo que ingresa el usuario
-
+	fmt.Println("GAME OVER")
 }
