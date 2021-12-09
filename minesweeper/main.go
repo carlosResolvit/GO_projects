@@ -73,14 +73,17 @@ func countAdjacentMines(row int, col int, aBoard [side][side]slot) int {
 	return count
 }
 
-func createRandomeTable() [side][side]slot {
+func createRandomeGame() game {
+	var auxGame game
+	auxGame.aWinner = false
+	auxGame.gameOver = false
+
 	// Populate table with "-"
-	var auxTable [side][side]slot
 	for i := 0; i < side; i++ {
 		for j := 0; j < side; j++ {
-			auxTable[i][j].isDisplayed = false
-			auxTable[i][j].flag = false
-			auxTable[i][j].value = "-"
+			auxGame.aTable[i][j].isDisplayed = false
+			auxGame.aTable[i][j].flag = false
+			auxGame.aTable[i][j].value = "-"
 		}
 	}
 	// Charge random mines "x" in table
@@ -89,57 +92,100 @@ func createRandomeTable() [side][side]slot {
 		y1 := rand.New(x1)
 		rand1 := y1.Intn(side)
 		rand2 := y1.Intn(side)
-		if auxTable[rand1][rand2].value != "-" {
+		if auxGame.aTable[rand1][rand2].value != "-" {
 			i--
 		} else {
-			auxTable[rand1][rand2].value = "x"
+			auxGame.aTable[rand1][rand2].value = "x"
 		}
 	}
 
 	// Add numeric values to Table
 	for i := 0; i < side; i++ {
 		for j := 0; j < side; j++ {
-			if !isMine(i, j, auxTable) {
-				count := countAdjacentMines(i, j, auxTable)
-				auxTable[i][j].value = strconv.Itoa(count)
+			if !isMine(i, j, auxGame.aTable) {
+				count := countAdjacentMines(i, j, auxGame.aTable)
+				auxGame.aTable[i][j].value = strconv.Itoa(count)
 			}
 		}
 	}
 
-	return auxTable
+	return auxGame
 }
 
-func flipSlot(i int, j int, aGame game) {
-	if !isMine(i, j, aGame.aTable) && (aGame.aTable[i][j].value == "0") {
-		println("A")
-		aGame.aTable[i][j].isDisplayed = true
-	} else if !isMine(i, j, aGame.aTable) && (aGame.aTable[i][j].value != "0") {
-		println("B")
-		aGame.aTable[i][j].isDisplayed = true
-		//display blank neighbours aGame.aTable[i][j]
-	} else {
+// A recursive function to display close values to empty spaces
+func (aGame *game) displayCloseValues(row int, col int) {
+	aGame.aTable[row][col].isDisplayed = true
+	//LEFT
+	/*if isValid(row, col-1) && !isMine(row, col-1, aGame.aTable) {
+		if aGame.aTable[row][col-1].value == "0" {
+			aGame.displayCloseValues(row, col-1)
+		} else {
+			aGame.aTable[row][col-1].isDisplayed = true
+		}
+	}*/
+	//RIGHT
+	if isValid(row, col+1) && !isMine(row, col+1, aGame.aTable) {
+		if aGame.aTable[row][col+1].value == "0" {
+			aGame.displayCloseValues(row, col+1)
+		} else {
+			aGame.aTable[row][col+1].isDisplayed = true
+		}
+	}
+	//UP
+	/*if isValid(row-1, col) && !isMine(row-1, col, aGame.aTable) {
+		if aGame.aTable[row-1][col].value == "0" {
+			aGame.displayCloseValues(row-1, col)
+		} else {
+			aGame.aTable[row-1][col].isDisplayed = true
+		}
+	}
+	//DOWN
+	if isValid(row+1, col) && !isMine(row+1, col, aGame.aTable) {
+		if aGame.aTable[row+1][col].value == "0" {
+			aGame.displayCloseValues(row+1, col)
+		} else {
+			aGame.aTable[row+1][col].isDisplayed = true
+		}
+	}*/
+}
+
+func (aGame *game) flipSlot(row int, col int) {
+	if aGame.aTable[row][col].value == "x" {
+		aGame.aTable[row][col].value = "X"
+		aGame.aTable[row][col].isDisplayed = true
 		aGame.gameOver = true
+		for i := 0; i < side; i++ {
+			for j := 0; j < side; j++ {
+				if isMine(i, j, aGame.aTable) {
+					aGame.aTable[i][j].isDisplayed = true
+				}
+			}
+		}
+	} else if aGame.aTable[row][col].value == "0" {
+		aGame.displayCloseValues(row, col)
+	} else {
+		aGame.aTable[row][col].isDisplayed = true
 	}
 }
 
-/*func printTable(aTable [side][side]slot) {
+func printTable(aTable [side][side]slot) {
 	for i := 0; i < side; i++ {
 		for j := 0; j < side; j++ {
 			fmt.Print(aTable[i][j].value + " ")
 		}
 		fmt.Println(" ")
 	}
-}*/
+}
 
-func printGameTable(aTable [side][side]slot) {
+func (aGame *game) printGameTable() {
 	fmt.Println("    1   2   3   4   5   6   7   8   9")
 	for i := 0; i < side; i++ {
 		fmt.Println("  +---+---+---+---+---+---+---+---+---+")
 		fmt.Print(i + 1)
 		fmt.Print(" ")
 		for j := 0; j < side; j++ {
-			if aTable[i][j].isDisplayed {
-				fmt.Print("| " + aTable[i][j].value + " ")
+			if aGame.aTable[i][j].isDisplayed {
+				fmt.Print("| " + aGame.aTable[i][j].value + " ")
 			} else {
 				fmt.Print("| - ")
 			}
@@ -151,22 +197,23 @@ func printGameTable(aTable [side][side]slot) {
 }
 
 func main() {
-	var auxGame game
-	auxGame.aTable = createRandomeTable()
-	auxGame.gameOver = false
-	auxGame.aWinner = false
-	var row int = -1
-	var col int = -1
+	auxGame := createRandomeGame()
+	printTable(auxGame.aTable) //TO DEBUG
+	var row int
+	var col int
 	for !auxGame.gameOver && !auxGame.aWinner {
+		//fmt.Println("\033[2J")
 		fmt.Println("Current Table:")
-		printGameTable(auxGame.aTable)
+		auxGame.printGameTable()
 		fmt.Println("Choose a row and a column:")
 		fmt.Scan(&row, &col)
-		if isValid(row, col) {
-			flipSlot(row, col, auxGame)
+		if isValid(row-1, col-1) {
+			auxGame.flipSlot(row-1, col-1)
 		} else {
 			fmt.Println("The value is not valid")
 		}
 	}
 	fmt.Println("GAME OVER")
+	fmt.Println("Current Table:")
+	auxGame.printGameTable()
 }
