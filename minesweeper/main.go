@@ -113,40 +113,53 @@ func createRandomeGame() game {
 }
 
 // A recursive function to display close values to empty spaces
-func (aGame *game) displayCloseValues(row int, col int) {
-	aGame.aTable[row][col].isDisplayed = true
-	//LEFT
-	/*if isValid(row, col-1) && !isMine(row, col-1, aGame.aTable) {
-		if aGame.aTable[row][col-1].value == "0" {
-			aGame.displayCloseValues(row, col-1)
-		} else {
-			aGame.aTable[row][col-1].isDisplayed = true
-		}
-	}*/
-	//RIGHT
-	if isValid(row, col+1) && !isMine(row, col+1, aGame.aTable) {
-		if aGame.aTable[row][col+1].value == "0" {
-			aGame.displayCloseValues(row, col+1)
-		} else {
-			aGame.aTable[row][col+1].isDisplayed = true
+func (aGame *game) displayValues(row int, col int) {
+	if !isMine(row, col, aGame.aTable) {
+		aGame.aTable[row][col].isDisplayed = true
+		if aGame.aTable[row][col].value == "0" {
+			aGame.aTable[row][col].value = " " //Pq dicen que queda feo el 0
+			if isValid(row, col-1) &&
+				!isMine(row, col-1, aGame.aTable) &&
+				!aGame.aTable[row][col-1].isDisplayed {
+				aGame.displayValues(row, col-1)
+			}
+			if isValid(row, col+1) &&
+				!isMine(row, col+1, aGame.aTable) &&
+				!aGame.aTable[row][col+1].isDisplayed {
+				aGame.displayValues(row, col+1)
+			}
+			if isValid(row-1, col) &&
+				!isMine(row-1, col, aGame.aTable) &&
+				!aGame.aTable[row-1][col].isDisplayed {
+				aGame.displayValues(row-1, col)
+			}
+			if isValid(row+1, col) &&
+				!isMine(row+1, col, aGame.aTable) &&
+				!aGame.aTable[row+1][col].isDisplayed {
+				aGame.displayValues(row+1, col)
+			}
+			if isValid(row-1, col-1) &&
+				!isMine(row-1, col-1, aGame.aTable) &&
+				!aGame.aTable[row-1][col-1].isDisplayed {
+				aGame.displayValues(row-1, col-1)
+			}
+			if isValid(row-1, col+1) &&
+				!isMine(row-1, col+1, aGame.aTable) &&
+				!aGame.aTable[row-1][col+1].isDisplayed {
+				aGame.displayValues(row-1, col+1)
+			}
+			if isValid(row+1, col-1) &&
+				!isMine(row+1, col-1, aGame.aTable) &&
+				!aGame.aTable[row+1][col-1].isDisplayed {
+				aGame.displayValues(row+1, col-1)
+			}
+			if isValid(row+1, col+1) &&
+				!isMine(row+1, col+1, aGame.aTable) &&
+				!aGame.aTable[row+1][col+1].isDisplayed {
+				aGame.displayValues(row+1, col+1)
+			}
 		}
 	}
-	//UP
-	/*if isValid(row-1, col) && !isMine(row-1, col, aGame.aTable) {
-		if aGame.aTable[row-1][col].value == "0" {
-			aGame.displayCloseValues(row-1, col)
-		} else {
-			aGame.aTable[row-1][col].isDisplayed = true
-		}
-	}
-	//DOWN
-	if isValid(row+1, col) && !isMine(row+1, col, aGame.aTable) {
-		if aGame.aTable[row+1][col].value == "0" {
-			aGame.displayCloseValues(row+1, col)
-		} else {
-			aGame.aTable[row+1][col].isDisplayed = true
-		}
-	}*/
 }
 
 func (aGame *game) flipSlot(row int, col int) {
@@ -161,11 +174,28 @@ func (aGame *game) flipSlot(row int, col int) {
 				}
 			}
 		}
-	} else if aGame.aTable[row][col].value == "0" {
-		aGame.displayCloseValues(row, col)
 	} else {
-		aGame.aTable[row][col].isDisplayed = true
+		aGame.displayValues(row, col)
 	}
+}
+
+func (aGame *game) hasAWinner() {
+	var count int = 0
+	for i := 0; i < side; i++ {
+		for j := 0; j < side; j++ {
+			if !isMine(i, j, aGame.aTable) &&
+				aGame.aTable[i][j].isDisplayed {
+				count++
+			}
+		}
+	}
+	if count == 71 {
+		aGame.aWinner = true
+	}
+}
+
+func (aGame *game) setFlag(i int, j int) {
+	aGame.aTable[i][j].flag = !aGame.aTable[i][j].flag
 }
 
 func printTable(aTable [side][side]slot) {
@@ -184,8 +214,10 @@ func (aGame *game) printGameTable() {
 		fmt.Print(i + 1)
 		fmt.Print(" ")
 		for j := 0; j < side; j++ {
-			if aGame.aTable[i][j].isDisplayed {
+			if aGame.aTable[i][j].isDisplayed && !aGame.aTable[i][j].flag {
 				fmt.Print("| " + aGame.aTable[i][j].value + " ")
+			} else if aGame.aTable[i][j].flag {
+				fmt.Print("| F ")
 			} else {
 				fmt.Print("| - ")
 			}
@@ -199,21 +231,39 @@ func (aGame *game) printGameTable() {
 func main() {
 	auxGame := createRandomeGame()
 	printTable(auxGame.aTable) //TO DEBUG
+	var command string
 	var row int
 	var col int
 	for !auxGame.gameOver && !auxGame.aWinner {
 		//fmt.Println("\033[2J")
 		fmt.Println("Current Table:")
 		auxGame.printGameTable()
-		fmt.Println("Choose a row and a column:")
-		fmt.Scan(&row, &col)
-		if isValid(row-1, col-1) {
-			auxGame.flipSlot(row-1, col-1)
-		} else {
-			fmt.Println("The value is not valid")
+		fmt.Println("Choose a row and a column with: 'D row col'")
+		fmt.Println("Set a flag with: 'F row col'")
+		fmt.Scan(&command, &row, &col)
+		switch command {
+		case "D":
+			if isValid(row-1, col-1) {
+				auxGame.flipSlot(row-1, col-1)
+			} else {
+				fmt.Println("The value is not valid")
+			}
+		case "F":
+			if isValid(row-1, col-1) {
+				auxGame.setFlag(row-1, col-1)
+			} else {
+				fmt.Println("The value is not valid")
+			}
+		default:
+			fmt.Println("Command Invalid")
 		}
+		auxGame.hasAWinner()
 	}
-	fmt.Println("GAME OVER")
+	if auxGame.gameOver {
+		fmt.Println("GAME OVER")
+	} else {
+		fmt.Println("WINNER")
+	}
 	fmt.Println("Current Table:")
 	auxGame.printGameTable()
 }
